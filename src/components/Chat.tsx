@@ -6,7 +6,8 @@ import type { OpenRouterMessage } from "../services/OpenRouterService";
 type ChatMessage = {
     id: string
     role: 'user' | 'assistant'
-    content: string
+    content: string,
+    agent: string,
 }
 
 type Agent = {
@@ -44,7 +45,7 @@ export const Chat: React.FC<Props> = ({ messages, agents }) => {
     }, [chatMessages])
 
     const handleSendMessage = async (message: string) => {
-        const userMsg = { id: crypto.randomUUID(), role: 'user' as const, content: message }
+        const userMsg = { id: crypto.randomUUID(), role: 'user' as const, content: message, agent: "user" }
         setChatMessages((prev) => ([...(prev ?? []), userMsg]))
         setTextareaValue('')
 
@@ -54,9 +55,9 @@ export const Chat: React.FC<Props> = ({ messages, agents }) => {
                 content: m.content,
             }))
             const reply = await chatCompletion({ model: selectedAgent.id, messages: orMessages })
-            setChatMessages((prev) => ([...(prev ?? []), { id: crypto.randomUUID(), role: 'assistant', content: reply }]))
+            setChatMessages((prev) => ([...(prev ?? []), { id: crypto.randomUUID(), role: 'assistant', content: reply, agent: selectedAgent.name }]))
         } catch (e: any) {
-            setChatMessages((prev) => ([...(prev ?? []), { id: crypto.randomUUID(), role: 'assistant', content: `Error: ${e?.message || 'failed to chat'}` }]))
+            setChatMessages((prev) => ([...(prev ?? []), { id: crypto.randomUUID(), role: 'assistant', content: `Error: ${e?.message || 'failed to chat'}`, agent: selectedAgent.name}]))
         }
     }
 
