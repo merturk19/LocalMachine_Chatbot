@@ -10,7 +10,7 @@ type ChatMessage = {
 
 function App() {
     const [messages] = useState<ChatMessage[]>([
-        { id: 'm1', role: 'assistant', content: 'Hey! I\'m your local AI. How can I help today?' },
+        { id: 'm1', role: 'assistant', content: 'Hey! I\'m your local AI. Start chatting with desired model by selecting it from the sidebar.' },
     ])
 
     const agents = useModelSelector().availableModels;
