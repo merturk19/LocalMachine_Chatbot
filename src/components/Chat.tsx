@@ -1,5 +1,5 @@
 import { MessageBubble } from "./MessageBubble";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 type ChatMessage = {
     id: string
@@ -7,11 +7,37 @@ type ChatMessage = {
     content: string
 }
 
-type Props = {
-    messages: ChatMessage[]
+type Agent = {
+    id: string
+    name: string
+    model: string
 }
 
-export const Chat: React.FC<Props> = ({ messages }) => {
+type Props = {
+    messages: ChatMessage[]
+    agents: Agent[]
+}
+
+export const Chat: React.FC<Props> = ({ messages, agents }) => {
+    const [chatMessages, setChatMessages] = useState<ChatMessage[]>(messages)
+    const [selectedAgent, setSelectedAgent] = useState<Agent>(agents[0])
+    const [textareaValue, setTextareaValue] = useState<string>('')
+
+    useEffect(() => {
+        setChatMessages(messages)
+    }, [messages])
+
+    const handleSendMessage = (message: string) => {
+        setChatMessages((prev) => [
+            ...(prev ?? []),
+            { id: 'm4', role: 'user', content: message },
+            { id: 'm5', role: 'assistant', content: 'Sample Response Given' }
+        ]);
+        
+        setTextareaValue('')
+    }
+
+
     return (
         <div className="min-h-full bg-black text-neutral-200">
             <div className="mx-auto flex h-dvh max-w-3xl flex-col">
@@ -27,7 +53,7 @@ export const Chat: React.FC<Props> = ({ messages }) => {
                 {/* Messages */}
                 <main className="flex-1 overflow-y-auto px-4 py-6">
                     <div className="mx-auto flex max-w-2xl flex-col gap-4">
-                        {messages.map((m) => (
+                        {chatMessages.map((m) => (
                             <MessageBubble key={m.id} role={m.role} content={m.content} />
                         ))}
                     </div>
@@ -36,16 +62,32 @@ export const Chat: React.FC<Props> = ({ messages }) => {
                 {/* Composer */}
                 <footer className="border-t border-white/10 bg-neutral-950/50 p-4">
                     <div className="mx-auto flex max-w-2xl items-end gap-2">
+                        <select
+                            className="rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm text-white shadow-inner outline-none focus:border-white/20 focus:ring-0"
+                            defaultValue={selectedAgent.id}
+                            onChange={(e) => setSelectedAgent(agents.find(a => a.id === e.target.value) ?? agents[0])}
+                        >
+                            {agents.map((a) => (
+                                <option key={a.id} value={a.id}>{a.name}</option>
+                            ))}
+                        </select>
                         <div className="relative flex-1">
                             <textarea
                                 placeholder="Type a message..."
                                 rows={1}
                                 className="block w-full resize-none rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 text-sm text-white placeholder:text-neutral-500 shadow-inner outline-none focus:border-white/20 focus:ring-0"
+                                value={textareaValue}
+                                onChange={(e) => setTextareaValue(e.target.value)}
                             />
                         </div>
                         <button
                             type="button"
                             className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-3 text-sm font-medium text-white backdrop-blur transition-colors hover:bg-white/20"
+                            onClick={() => {
+                                if (textareaValue) {
+                                    handleSendMessage(textareaValue);
+                                }
+                            }}
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
