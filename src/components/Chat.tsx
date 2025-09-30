@@ -1,5 +1,7 @@
 import { MessageBubble } from "./MessageBubble";
 import React, { useEffect, useState } from "react";
+import { chatCompletion } from "../services/OpenRouterService";
+import type { OpenRouterMessage } from "../services/OpenRouterService";
 
 type ChatMessage = {
     id: string
@@ -10,7 +12,6 @@ type ChatMessage = {
 type Agent = {
     id: string
     name: string
-    model: string
 }
 
 type Props = {
@@ -25,16 +26,24 @@ export const Chat: React.FC<Props> = ({ messages, agents }) => {
 
     useEffect(() => {
         setChatMessages(messages)
-    }, [messages])
+        setSelectedAgent(agents[0])
+    }, [messages, agents])
 
-    const handleSendMessage = (message: string) => {
-        setChatMessages((prev) => [
-            ...(prev ?? []),
-            { id: 'm4', role: 'user', content: message },
-            { id: 'm5', role: 'assistant', content: 'Sample Response Given' }
-        ]);
-        
+    const handleSendMessage = async (message: string) => {
+        const userMsg = { id: crypto.randomUUID(), role: 'user' as const, content: message }
+        setChatMessages((prev) => ([...(prev ?? []), userMsg]))
         setTextareaValue('')
+
+        try {
+            const orMessages: OpenRouterMessage[] = [...(chatMessages ?? []), userMsg].map(m => ({
+                role: m.role,
+                content: m.content,
+            }))
+            const reply = await chatCompletion({ model: selectedAgent.id, messages: orMessages })
+            setChatMessages((prev) => ([...(prev ?? []), { id: crypto.randomUUID(), role: 'assistant', content: reply }]))
+        } catch (e: any) {
+            setChatMessages((prev) => ([...(prev ?? []), { id: crypto.randomUUID(), role: 'assistant', content: `Error: ${e?.message || 'failed to chat'}` }]))
+        }
     }
 
 
@@ -64,7 +73,7 @@ export const Chat: React.FC<Props> = ({ messages, agents }) => {
                     <div className="mx-auto flex max-w-2xl items-end gap-2">
                         <select
                             className="rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm text-white shadow-inner outline-none focus:border-white/20 focus:ring-0"
-                            defaultValue={selectedAgent.id}
+                            //defaultValue={selectedAgent.id ?? 0}
                             onChange={(e) => setSelectedAgent(agents.find(a => a.id === e.target.value) ?? agents[0])}
                         >
                             {agents.map((a) => (
@@ -78,6 +87,14 @@ export const Chat: React.FC<Props> = ({ messages, agents }) => {
                                 className="block w-full resize-none rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 text-sm text-white placeholder:text-neutral-500 shadow-inner outline-none focus:border-white/20 focus:ring-0"
                                 value={textareaValue}
                                 onChange={(e) => setTextareaValue(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" && !e.shiftKey) {
+                                        e.preventDefault();
+                                        if (textareaValue) {
+                                            handleSendMessage(textareaValue);
+                                        }
+                                    }
+                                }}
                             />
                         </div>
                         <button
