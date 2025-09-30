@@ -24,25 +24,25 @@ export const Chat: React.FC<Props> = ({ messages, agents }) => {
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() => {
         const stored = localStorage.getItem("chat_history");
         if (stored) {
-          try {
-            return JSON.parse(stored) as ChatMessage[];
-          } catch {
-            return messages; 
-          }
+            try {
+                return JSON.parse(stored) as ChatMessage[];
+            } catch {
+                return messages;
+            }
         }
         return messages;
-      });
-      const [selectedAgent, setSelectedAgent] = useState<Agent>(() => {
+    });
+    const [selectedAgent, setSelectedAgent] = useState<Agent>(() => {
         const stored = localStorage.getItem("selected_agent");
         if (stored) {
-          try {
-            return JSON.parse(stored) as Agent;
-          } catch {
-            return agents[0];
-          }
+            try {
+                return JSON.parse(stored) as Agent;
+            } catch {
+                return agents[0];
+            }
         }
         return agents[0];
-      });
+    });
     const [textareaValue, setTextareaValue] = useState<string>('')
 
     useEffect(() => {
@@ -53,7 +53,7 @@ export const Chat: React.FC<Props> = ({ messages, agents }) => {
     useEffect(() => {
         //same for selected agent
         localStorage.setItem("selected_agent", JSON.stringify(selectedAgent));
-      }, [selectedAgent]);
+    }, [selectedAgent]);
 
     const handleSendMessage = async (message: string) => {
         const userMsg = { id: crypto.randomUUID(), role: 'user' as const, content: message, agent: "user" }
@@ -68,8 +68,13 @@ export const Chat: React.FC<Props> = ({ messages, agents }) => {
             const reply = await chatCompletion({ model: selectedAgent.id, messages: orMessages })
             setChatMessages((prev) => ([...(prev ?? []), { id: crypto.randomUUID(), role: 'assistant', content: reply, agent: selectedAgent.name }]))
         } catch (e: any) {
-            setChatMessages((prev) => ([...(prev ?? []), { id: crypto.randomUUID(), role: 'assistant', content: `Error: ${e?.message || 'failed to chat'}`, agent: selectedAgent.name}]))
+            setChatMessages((prev) => ([...(prev ?? []), { id: crypto.randomUUID(), role: 'assistant', content: `Error: ${e?.message || 'failed to chat'}`, agent: selectedAgent.name }]))
         }
+    }
+
+    const handleNewChat = () => {
+        setChatMessages([])
+        localStorage.setItem("chat_history", "")
     }
 
     return (
@@ -90,11 +95,17 @@ export const Chat: React.FC<Props> = ({ messages, agents }) => {
 
                 {/* Messages */}
                 <main className="flex-1 overflow-y-auto px-4 py-6">
-                    <div className="mx-auto flex max-w-2xl flex-col gap-4">
-                        {chatMessages.map((m) => (
-                            <MessageBubble key={m.id} role={m.role} content={m.content} />
-                        ))}
-                    </div>
+                    {chatMessages.length !== 0 ? (
+                        <div className="mx-auto flex max-w-2xl flex-col gap-4">
+                            {chatMessages.map((m) => (
+                                <MessageBubble key={m.id} role={m.role} content={m.content} />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="mx-auto flex h-full max-w-2xl justify-center text-sm text-neutral-400 italic">
+                            Start by typing a message...
+                        </div>
+                    )}
                 </main>
 
                 {/* Composer */}
@@ -142,7 +153,8 @@ export const Chat: React.FC<Props> = ({ messages, agents }) => {
 
             {/* Right sidebar */}
             <div className="flex flex-col gap-2 p-6">
-                <button className="rounded-xl bg-emerald-500/20 px-4 py-2 text-sm font-medium text-emerald-300 hover:bg-emerald-500/30 mb-8">
+                <button className="rounded-xl bg-emerald-500/20 px-4 py-2 text-sm font-medium text-emerald-300 hover:bg-emerald-500/30 mb-8"
+                    onClick={handleNewChat}>
                     Start new chat +
                 </button>
                 <div className="text-s text-neutral-400">Selected Model</div>
