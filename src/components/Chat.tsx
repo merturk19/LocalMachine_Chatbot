@@ -32,17 +32,28 @@ export const Chat: React.FC<Props> = ({ messages, agents }) => {
         }
         return messages;
       });
-    const [selectedAgent, setSelectedAgent] = useState<Agent>(agents[0])
+      const [selectedAgent, setSelectedAgent] = useState<Agent>(() => {
+        const stored = localStorage.getItem("selected_agent");
+        if (stored) {
+          try {
+            return JSON.parse(stored) as Agent;
+          } catch {
+            return agents[0];
+          }
+        }
+        return agents[0];
+      });
     const [textareaValue, setTextareaValue] = useState<string>('')
-
-    useEffect(() => {
-        setSelectedAgent(agents[0])
-    }, [messages, agents])
 
     useEffect(() => {
         //setting local storage here for refreshing after each message entry
         localStorage.setItem("chat_history", JSON.stringify(chatMessages, null, 2))
     }, [chatMessages])
+
+    useEffect(() => {
+        //same for selected agent
+        localStorage.setItem("selected_agent", JSON.stringify(selectedAgent));
+      }, [selectedAgent]);
 
     const handleSendMessage = async (message: string) => {
         const userMsg = { id: crypto.randomUUID(), role: 'user' as const, content: message, agent: "user" }
