@@ -31,10 +31,14 @@ export async function getModels(): Promise<OpenRouterModel[]> {
     }
     const data = await res.json()
 
-    const models: OpenRouterModel[] = (data?.data ?? []).map((m: any) => ({
-        id: m?.id,
-        name: m?.name || m?.id,
-    }))
+    const models: OpenRouterModel[] = (data?.data ?? []) 
+    .filter((m: any) => {
+      return (m?.name || "").toLowerCase().includes("(free)");
+    })
+    .map((m: any) => ({
+      id: m?.id,
+      name: m?.name.slice(0, -6) || m?.id,
+    }));
     return models
 }
 
