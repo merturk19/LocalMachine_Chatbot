@@ -1,35 +1,30 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Chat } from './components/Chat'
+import { useModelSelector } from './hooks/useModelSelector'
+
+type ChatMessage = {
+    id: string
+    role: 'user' | 'assistant'
+    content: string
+    agent: string
+}
 
 function App() {
-  const [count, setCount] = useState(0)
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    const [messages] = useState<ChatMessage[]>([
+        { id: 'm1', role: 'assistant', content: 'Hey! I\'m your local AI. Start chatting with desired model by selecting it from the sidebar.', agent: "not picked" },
+    ])
+
+    const agents = useModelSelector().availableModels;
+
+    return (
+        <div>
+            <>
+              <Chat messages={messages} agents={agents} />
+            </>
+        </div>
+      );
 }
+
 
 export default App
