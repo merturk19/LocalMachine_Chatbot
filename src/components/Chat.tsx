@@ -38,7 +38,7 @@ export const Chat: React.FC<Props> = ({ messages, agents }) => {
       try {
         return JSON.parse(stored) as Agent;
       } catch {
-        return agents[0];
+        console.error("Failed to parse stored agent, defaulting to first agent.");
       }
     }
     return agents[0];
