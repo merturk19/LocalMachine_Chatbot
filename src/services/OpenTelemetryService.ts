@@ -9,7 +9,7 @@ const provider = new WebTracerProvider({
   spanProcessors: [
     new BatchSpanProcessor(
       new OTLPTraceExporter({
-        url: 'http://localhost:4318/v1/traces', 
+          url: 'http://localhost:4319/v1/traces',
       })
     ),
   ],
